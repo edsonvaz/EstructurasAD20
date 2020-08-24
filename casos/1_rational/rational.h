@@ -64,7 +64,7 @@ std::string Rational::toString() const {
 }
 
 Rational::operator double () const {
-	return 0.0;
+	return numerator / (double) denominator;
 }
 
 //Greatest common divisor
@@ -111,23 +111,33 @@ void Rational::operator+= (const Rational &right) {
 }
 
 Rational operator+ (const Rational &left, const Rational &right) {
-	return Rational();
-}
+int num, dem;
+
+	num = (left.getNumerator() * right.getDenominator()) + (left.getDenominator() * right.getNumerator());
+	dem = left.getDenominator() * right.getDenominator();
+
+	return Rational(num, dem);
+  }
 
 Rational operator- (const Rational &left, const Rational &right) {
-	return Rational();
-}
+int num, dem;
+
+	num = (left.getNumerator() * right.getDenominator()) - (left.getDenominator() * right.getNumerator());
+	dem = left.getDenominator() * right.getDenominator();
+
+	return Rational(num, dem);
+  }
 
 Rational operator- (const Rational &right) {
-	return Rational();
+return Rational(-right.getNumerator(), right.getDenominator());
 }
 
 bool operator== (const Rational &left, const Rational &right) {
-	return false;
+	return (left.getNumerator() * right.getDenominator()) == (left.getDenominator() * right.getNumerator());
 }
 
 bool operator<  (const Rational &left, const Rational &right) {
-	return false;
+return (left.getNumerator() * right.getDenominator()) < (left.getDenominator() * right.getNumerator());
 }
 
 #endif /* RATIONAL_H_ */
