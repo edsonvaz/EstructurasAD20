@@ -40,14 +40,11 @@ Rational::Rational() {
     denominator = 1;
 }
 
-Rational::Rational(int num){
-    numerator = num;
+Rational::Rational(int num):numerator(num){
     denominator = 1;
 }
 
-Rational::Rational(int num, int dem){
-    numerator=num;
-    denominator=dem;
+Rational::Rational(int num, int dem):numerator(num),denominator(dem){
     normalize();
 }
 
@@ -102,10 +99,15 @@ void Rational::normalize() {
 	denominator = denominator / d;
 }
 
-void Rational::operator= (const Rational &right) {
+void Rational::operator=(const Rational &right) {
+  numerator   = right.numerator;
+	denominator = right.denominator;
 }
 
 void Rational::operator+= (const Rational &right) {
+  numerator    = (numerator * right.denominator) + (denominator * right.numerator);
+	denominator *= right.denominator;
+	normalize();
 }
 
 Rational operator+ (const Rational &left, const Rational &right) {
