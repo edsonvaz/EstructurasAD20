@@ -31,14 +31,18 @@ public:
 Timer::Timer() : hours(0), minutes(0) {}
 
 Timer::Timer(int hh, int mm) {
+  minutes = mm % 60;
+	hours = (hh + (mm / 60)) % 24;
 }
 
 Timer::Timer(const Timer &t) {}
 
 int Timer::getHours() const {
+  return hours;
 }
 
 int Timer::getMinutes() const {
+  return minutes;
 }
 
 std::string Timer::toString() const {
@@ -56,6 +60,8 @@ std::string Timer::toString() const {
 }
 
 void Timer::operator= (const Timer &right) {
+  hours= right.hours;
+  minutes=right.minutes;
 }
 
 void Timer::operator+= (const Timer &right) {
