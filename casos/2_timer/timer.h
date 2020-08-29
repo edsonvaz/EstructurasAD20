@@ -65,12 +65,24 @@ void Timer::operator= (const Timer &right) {
 }
 
 void Timer::operator+= (const Timer &right) {
+  	int total;
+
+    total = minutes + right.minutes;
+    minutes = total % 60;
+    hours = (hours + right.hours + (total / 60)) % 24;
 }
 
 bool operator== (const Timer &left, const Timer &right) {
+  	return (left.getHours() == right.getHours() &&
+			left.getMinutes() == right.getMinutes());
 }
 
 bool operator> (const Timer &left, const Timer &right) {
+  	if (left.getHours() == right.getHours()) {
+		return (left.getMinutes() > right.getMinutes());
+	} else {
+		return (left.getHours() > right.getHours());
+	}
 }
 
 #endif /* TIMER_H_ */
