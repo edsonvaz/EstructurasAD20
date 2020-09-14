@@ -1,10 +1,3 @@
-/*
- * linkedlist.h
- * solucion en clase
- *  Created on: 05/08/2015
- *      Author: pperezm
- */
-
 #ifndef LINKEDLIST_H_
 #define LINKEDLIST_H_
 
