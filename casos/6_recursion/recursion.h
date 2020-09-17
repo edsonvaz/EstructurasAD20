@@ -12,27 +12,71 @@
 #include <iostream>
 
 long sum_seq(int n) {
-	return 0;
+  long resultado=0;
+  long i=1;
+
+  while (i<=n){
+    resultado=resultado+i;
+    i++;
+  }
+
+  return resultado;
 }
 
 long sum_rec(int n) {
-	return 0;
+
+  if (n==1){
+    return 1;
+  }
+
+	return n+sum_rec(n-1);
+
 }
 
 long fact_seq(int n) {
-	return 0;
+  long resultado=1;
+
+  for (int i=1; i<=n; i++){
+    resultado= resultado*i;
+  }
+
+  return resultado;
 }
 
 long fact_rec(int n) {
-	return 0;
+  if (n==0){
+    return 1;
+  }
+
+  return n* fact_rec(n-1);
 }
 
 long fib_seq(int n) {
-	return 0;
+  long resultado=1;
+  long ant_1= resultado;
+  long ant_2= resultado;
+
+  for (int i=3;i<=n;i++){
+    resultado=ant_1+ant_2;
+    ant_2=ant_1;
+    ant_1=resultado;
+  }
+
+  return resultado;
+
 }
 
 long fib_rec(int n) {
-	return 0;
+  if (n==1){
+    return 1;
+  }
+
+  if (n==2){
+    return 1;
+  }
+
+  return fib_rec(n-1)+fib_rec(n-2);
+
 }
 
 long gcd_seq(long a, long b) {
@@ -72,11 +116,36 @@ int unimodal_rec(int arr[], int size) {
 }
 
 int bs_seq(int arr[], int size, int val) {
-	return 0;
+	int low=0;
+  int high=size -1;
+  int mid = (high + low)/2;
+
+while (low<high){
+  mid = (high+low)/2;
+  if (val==arr[mid]){
+    return mid;
+  }
+}
+
 }
 
 int bs_aux(int arr[], int low, int high, int val) {
-	return 0;
+if (low>high){
+  return low;
+}
+
+int mid=(high+low)/2;
+
+if (val == arr[mid]){
+  return mid;
+}
+
+if(val<arr[mid]){
+  return bs_aux(arr,low,mid-1,val);
+} else {
+  return bs_aux(arr,mid+1,high,val);
+}
+
 }
 
 int bs_rec(int arr[], int size, int val) {
