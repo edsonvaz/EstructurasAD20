@@ -10,7 +10,6 @@
 
 #include <cctype>
 #include <string>
-
 #include <sstream>
 #include <queue>
 #include <stack>
@@ -45,63 +44,247 @@ public:
 	friend class EvalTree;
 };
 
-TreeNode::TreeNode(char c) {}
+TreeNode::TreeNode(char c) {value = c; left = 0; right =0;}
 
-TreeNode::TreeNode(char c, TreeNode* le, TreeNode* ri) {}
+TreeNode::TreeNode(char c, TreeNode* le, TreeNode* ri):value(c), left(le), right(ri){}
 
 bool TreeNode::isOperator() const {
-	return false;
+	return ( value == '+' || value == '-'  || value == '*'  ||value == '/');
 }
 
 bool TreeNode::isVariable() const {
-	return false;
+	return (value == 'x');
 }
 
 bool TreeNode::isOperand() const {
-	return false;
+	return (value > '0' && value < '9');
 }
 
 int TreeNode::depth() const {
-	return 0;
+    int right_count = -1;
+    int left_count = -1;
+    int higher_count = -1;
+
+	  if(left != 0){
+        left_count = left->depth();
+    }
+	
+    if(right != 0){
+        right_count = right->depth();
+    }
+  
+
+	higher_count = (left_count > right_count) ?  left_count:right_count;
+	return (higher_count +1);
+
 }
 
 void TreeNode::inorder(std::stringstream &aux) const {
-	aux << " ";
+
+	if(left != 0){
+        left->inorder(aux);
+	}
+
+	aux << value << " ";
+
+	if(right != 0){
+        right->inorder(aux);
+	}
+
 }
 
 void TreeNode::postorder(std::stringstream &aux) const {
-	aux << " ";
+
+    if(left != 0){
+        left->postorder(aux);
+	}
+
+	if(right != 0){
+        right->postorder(aux);
+	}
+
+	aux << value << " ";
+
 }
 
 void TreeNode::preorder(std::stringstream &aux) const {
-	aux << " ";
+
+	aux << value << " ";
+
+    if(left != 0){
+        left->preorder(aux);
+	}
+
+	if(right != 0){
+        right->preorder(aux);
+	}
+
 }
 
 int TreeNode::howManyLeaves() const {
-	return 0;
+
+    int left_count = 0;
+    int right_count = 0;
+    int total_count = 0;
+
+    if(left!=0){
+       left_count = left->howManyLeaves();
+    }
+
+
+    if(right!=0){
+       right_count = right->howManyLeaves();
+    }
+
+
+    total_count = left_count + right_count;
+
+
+	return (total_count == 0)? 1 : total_count;
+
 }
 
 char TreeNode::minValue() const {
-	return '9';
+
+    char left_value = '9';
+    char right_value = '9';
+    char min_value = '9';
+
+    if (isOperand()){
+        min_value = value;
+    } else if(isOperator()){
+        if(left != 0){
+          left_value = left->minValue();
+        }
+        if(right != 0){
+          right_value = right->minValue();
+        }
+		min_value = (left_value < right_value)? left_value : right_value;
+    }
+
+	return min_value;
 }
 
 bool TreeNode::find(char val) const {
-	return false;
+	bool found = false;
+
+	if(value == val){
+        return true;
+	}
+
+    if(left != 0){
+        found = (found || left->find(val))? true : false;
+    }
+
+    if(right != 0){
+        found = (found || right->find(val))? true : false;
+    }
+
+    return found;
 }
 
 double TreeNode::eval(double x) const {
+    double left_value, right_value;
+//"x x * 2 x * - 1 +"
+    if (isVariable()){
+        return x;
+    }
+
+    if(isOperand()){
+       return value - '0';
+    }
+
+    if(isOperator()){
+        if(left != 0){
+                left_value = left->eval(x);
+        }
+
+        if(right !=0){
+                right_value = right->eval(x);
+        }
+
+        if (value == '*') return left_value * right_value;
+        if (value == '+') return left_value + right_value;
+        if (value == '-') return left_value - right_value;
+        if (value == '/'){
+                if(right_value == 0) throw IllegalAction();
+                return left_value / right_value;}
+    }
 	return 0;
 }
 
 void TreeNode::removeChilds() {
+	
+        if(left != NULL){
+         left->removeChilds();
+            delete left;
+            left =0;
+        }
+
+        if(right != NULL){
+            right->removeChilds();
+            delete right;
+            right = 0;
+        }
 }
 
 TreeNode* TreeNode::derive() const {
+    TreeNode *a, *b, *deriveA, *deriveB, *resultA, *resultB, *v, *result;
+    if(isOperand()){
+        return new TreeNode('0');
+    }else if(isVariable()){
+        return new TreeNode('1');
+    }else if(isOperator()){
+        switch(value){
+        case '+':
+            return new TreeNode('+', left->derive(),right->derive());
+        case '-':
+            return new TreeNode('-', left->derive(),right->derive());
+        case '*':
+            a = left->copy();
+            deriveB = right->derive();
+            resultA = new TreeNode('*', a, deriveB);
+
+            b = right->copy();
+            deriveA = left->derive();
+            resultB = new TreeNode('*',  b,deriveA);
+
+            result = new TreeNode('+', resultA, resultB);
+            return result;
+        case '/':
+            a = left->copy();
+            deriveB = right->derive();
+            resultA = new TreeNode('*', a, deriveB);
+
+            b = right->copy();
+            deriveA = left->derive();
+            resultB = new TreeNode('*',  b,deriveA);
+
+            result = new TreeNode('-', resultA, resultB);
+
+            v = new TreeNode('*', right->copy(), right->copy());
+
+            result = new TreeNode('/', result,v);
+            return result;
+        }
+    }
+
 	return 0;
 }
 
 TreeNode* TreeNode::copy() const {
-	return 0;
+
+    TreeNode *node = new TreeNode(value);
+
+    if(left != 0){
+        node->left = left->copy();
+    }
+
+    if(right!= 0){
+        node->right = right->copy();
+    }
+
+    return node;
 }
 
 class EvalTree {
@@ -133,6 +316,7 @@ public:
 };
 
 EvalTree::EvalTree() {
+    root = 0;
 }
 
 std::queue<std::string> EvalTree::tokenize(std::string str) {
@@ -194,59 +378,90 @@ EvalTree::EvalTree(std::string str) throw (IllegalAction) {
 }
 
 EvalTree::~EvalTree() {
+    removeAll();
 }
 
 bool EvalTree::empty() const {
+    return (root ==0)? true:false;
 }
 
 int EvalTree::height() const {
-	return 0;
+	return empty() ? 0: root->depth()+1; //cause of the -1
 }
 
 std::string EvalTree::inorder() const {
 	std::stringstream aux;
-
+	root->inorder(aux);
 	return aux.str();
 }
 
 std::string EvalTree::preorder() const {
 	std::stringstream aux;
-
+	root->preorder(aux);
 	return aux.str();
 }
 
 std::string EvalTree::postorder() const {
 	std::stringstream aux;
-
+    root->postorder(aux);
 	return aux.str();
 }
 
 std::string EvalTree::levelOrder() const {
 	std::stringstream aux;
+	std::queue<TreeNode*> s;
+	TreeNode *p;
+
+    p = root;
+    s.push(p);
+
+    while(!s.empty()){
+        p = s.front();
+        aux << p->value << " "; s.pop();
+        if(p->left != 0){
+            s.push(p->left);
+        }
+        if(p->right!= 0){
+            s.push(p->right);
+        }
+    }
 
 	return aux.str();
 }
 
 int EvalTree::howManyLeaves() const {
-	return 0;
+    if(empty()) return 0;
+	return root->howManyLeaves();
 }
 
 char EvalTree::minValue() const throw (IllegalAction) {
-	return '9';
+    if(empty()){throw IllegalAction();}
+	return root->minValue();
 }
 
 bool EvalTree::find(char c) const {
-	return false;
+	return root->find(c);
 }
 
 double EvalTree::eval(double x) const throw (IllegalAction) {
-	return 0.0;
+    if(empty()) throw IllegalAction();
+	return root->eval(x);
 }
 
 EvalTree* EvalTree::derive() const {
-	return 0;
+    EvalTree *newTree = new EvalTree();
+
+    if(root != 0){
+        newTree->root = root->derive();
+    }
+	return newTree;
 }
 
 void EvalTree::removeAll() {
+    if(root!= 0){
+        root->removeChilds();
+        delete root;
+    }
+    root = 0;
 }
 #endif /* EVALTREE_H_ */
