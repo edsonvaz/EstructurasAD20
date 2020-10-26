@@ -12,20 +12,21 @@
 #include <string>
 #include <sstream>
 #include "exception.h"
+#include <iostream>
 
 template <class T> class BST;
 
 template <class T>
-class TreeNode {
+class Node {
 private:
 	T value;
-	TreeNode *left, *right;
+	Node *left, *right;
 
-	TreeNode<T>* succesor();
+	Node<T>* succesor();
 
 public:
-	TreeNode(T);
-	TreeNode(T, TreeNode<T>*, TreeNode<T>*);
+	Node(T);
+	Node(T, Node<T>*, Node<T>*);
 	void add(T);
 	bool find(T);
 	void remove(T);
@@ -37,35 +38,125 @@ public:
 };
 
 template <class T>
-TreeNode<T>::TreeNode(T val) {}
+Node<T>::Node(T val) : value(val), left(0), right(0) {}
 
 template <class T>
-TreeNode<T>::TreeNode(T val, TreeNode<T> *le, TreeNode<T> *ri) {}
+Node<T>::Node(T val, Node<T> *le, Node<T> *ri)
+	: value(val), left(le), right(ri) {}
 
 template <class T>
-void TreeNode<T>::add(T val) {
+void Node<T>::add(T val) {
+	if (val < value) {
+		if (left != 0) {
+			left->add(val);
+		} else {
+			left = new Node<T>(val);
+		}
+	} else {
+		if (right != 0) {
+			right->add(val);
+		} else {
+			right = new Node<T>(val);
+		}
+	}
 }
 
 template <class T>
-bool TreeNode<T>::find(T val) {
-	return false;
+bool Node<T>::find(T val) {
+	if (val == value) {
+		return true;
+	} else if (val < value) {
+		return (left != 0 && left->find(val));
+	} else if (val > value) {
+		return (right != 0 && right->find(val));
+	}
 }
 
 template <class T>
-TreeNode<T>* TreeNode<T>::succesor() {
-	return 0;
+Node<T>* Node<T>::succesor() {
+	Node<T> *le, *ri;
+
+	le = left;
+	ri = right;
+
+	if (left == 0) {
+		if (right != 0) {
+			right = 0;
+		}
+		return ri;
+	}
+
+	if (left->right == 0) {
+		left = left->left;
+		le->left = 0;
+		return le;
+	}
+
+	Node<T> *parent, *child;
+	parent = left;
+	child = left->right;
+	while (child->right != 0) {
+		parent = child;
+		child = child->right;
+	}
+	parent->right = child->left;
+	child->left = 0;
+	return child;
 }
 
 template <class T>
-void TreeNode<T>::remove(T val) {
+void Node<T>::remove(T val) {
+	Node<T> * succ, *old;
+
+	if (val < value) {
+		if (left != 0) {
+			if (left->value == val) {
+				old = left;
+				succ = left->succesor();
+				if (succ != 0) {
+					succ->left = old->left;
+					succ->right = old->right;
+				}
+				left = succ;
+				delete old;
+			} else {
+				left->remove(val);
+			}
+		}
+	} else if (val > value) {
+		if (right != 0) {
+			if (right->value == val) {
+				old = right;
+				succ = right->succesor();
+				if (succ != 0) {
+					succ->left = old->left;
+					succ->right = old->right;
+				}
+				right = succ;
+				delete old;
+			} else {
+				right->remove(val);
+			}
+		}
+	}
 }
 
 template <class T>
-void TreeNode<T>::removeChilds() {
+void Node<T>::removeChilds() {
+	if (left != 0) {
+		left->removeChilds();
+		delete left;
+		left = 0;
+	}
+	if (right != 0) {
+		right->removeChilds();
+		delete right;
+		right = 0;
+	}
 }
 
 template <class T>
-void TreeNode<T>::inorder(std::stringstream &aux) const {
+void Node<T>::inorder(std::stringstream &aux) const {
 	if (left != 0) {
 		left->inorder(aux);
 	}
@@ -79,7 +170,7 @@ void TreeNode<T>::inorder(std::stringstream &aux) const {
 }
 
 template <class T>
-void TreeNode<T>::preorder(std::stringstream &aux) const {
+void Node<T>::preorder(std::stringstream &aux) const {
 	aux << value;
 	if (left != 0) {
 		aux << " ";
@@ -94,7 +185,7 @@ void TreeNode<T>::preorder(std::stringstream &aux) const {
 template <class T>
 class BST {
 private:
-	TreeNode<T> *root;
+	Node<T> *root;
 
 public:
 	BST();
@@ -123,18 +214,48 @@ bool BST<T>::empty() const {
 
 template<class T>
 void BST<T>::add(T val) {
+	if (root != 0) {
+		if (!root->find(val)) {
+			root->add(val);
+		}
+	} else {
+		root = new Node<T>(val);
+	}
 }
 
 template <class T>
 void BST<T>::remove(T val) {
+	if (root != 0) {
+		if (val == root->value) {
+			Node<T> *succ = root->succesor();
+			if (succ != 0) {
+				succ->left = root->left;
+				succ->right = root->right;
+			}
+			delete root;
+			root = succ;
+		} else {
+			root->remove(val);
+		}
+	}
 }
 
 template <class T>
 void BST<T>::removeAll() {
+	if (root != 0) {
+		root->removeChilds();
+	}
+	delete root;
+	root = 0;
 }
 
 template <class T>
 bool BST<T>::find(T val) const {
+	if (root != 0) {
+		return root->find(val);
+	} else {
+		return false;
+	}
 }
 
 template <class T>
@@ -162,3 +283,4 @@ std::string BST<T>::preorder() const {
 }
 
 #endif /* BST_H_ */
+
